@@ -11,14 +11,12 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.ws.spi.http.HttpHandler;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +27,7 @@ public class Main {
     static Logger logger= LoggerFactory.getLogger(Main.class);
     static String url="http://www.henanjk.com/";
     static String dest="list.asp?mod=170&sid=";
+    static String mydir="C:\\Users\\Administrator\\Desktop\\lang\\";
     static List<Integer> downInteger;
     static List<String> downList=new ArrayList<String>();
     static Map<String,Integer> downMap= new HashMap<String, Integer>();
@@ -182,7 +181,7 @@ public class Main {
 
                 System.out.println("The response value of token:" + httpResponse.getFirstHeader("token"));
 
-                File file = new File("C:\\Users\\Administrator\\Desktop\\lang\\test.zip");
+                File file = new File(mydir+"test.zip");
                 if(!file.exists()){
                     file.createNewFile();
                 }
