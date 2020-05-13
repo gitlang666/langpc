@@ -13,6 +13,13 @@ public class KMP {
         for (Integer integer : list) {
             System.out.println(integer);
         }
+
+        String s1="qwreqwer\"asdfa";
+        String s2=s1.substring(s1.indexOf("re")+2,s1.indexOf("\""));
+        System.out.println(s2);
+        System.out.println(s1.substring(s1.lastIndexOf("d")+1));
+        KMP kmp=new KMP();
+        System.out.println(kmp.getPath());
     }
 
     /**
@@ -59,6 +66,21 @@ public class KMP {
             next[i] = j;
         }
         return next;
+    }
+
+    public String getPath()
+    {
+        String path = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
+        if(System.getProperty("os.name").contains("dows"))
+        {
+            path = path.substring(1,path.length());
+        }
+        if(path.contains("jar"))
+        {
+            path = path.substring(0,path.lastIndexOf("."));
+            return path.substring(0,path.lastIndexOf("/"));
+        }
+        return path.replace("target/classes/", "");
     }
 
 }

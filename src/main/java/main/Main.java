@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 public class Main {
     static Logger logger= LoggerFactory.getLogger(Main.class);
@@ -31,7 +32,7 @@ public class Main {
     static List<Integer> downInteger;
     static List<String> downList=new ArrayList<String>();
     static Map<String,Integer> downMap= new HashMap<String, Integer>();
-
+    static List<Header> headerList;
     public static void main(String[] args)  {
 
 
@@ -86,7 +87,7 @@ public class Main {
             HttpPost httpPost1 = new HttpPost("http://www.henanjk.com/"+newuri);
 
             Header[] httpHeaders = response.getAllHeaders();
-            List<Header> headerList=new ArrayList<Header>();
+            headerList=new ArrayList<Header>();
             for (Header httpHeader : httpHeaders) {
                 System.out.println(httpHeader.getName() + ":" + httpHeader.getValue());
                 if(httpHeader.getName().equals("Set-Cookie")){
@@ -112,12 +113,28 @@ public class Main {
                     String downstr=string.substring(integer,integer+dest.length()+3);
                     logger.info(integer+":"+downstr);
                     downList.add(downstr);
-                    downMap.put(downstr,integer);
+                    downMap.put(Dest.mainurl+downstr,integer);
                 }
                 logger.info("downMapcount="+downMap.size());
-                for(Map.Entry entry : downMap.entrySet()){
+                int js=0;
+                int f=2;
+                final CountDownLatch countDownLatch = new CountDownLatch(f);
+                MyCountDownLatch myCountDownLatch = new MyCountDownLatch(f);
+                for(Map.Entry<String,Integer> entry : downMap.entrySet()){
+                    if(js>=f){
+                        break;
+                    }
                     logger.info(entry.getKey()+":"+entry.getValue());
+                    MyThread myThread=new MyThread(entry.getKey(),headerList,entry.getKey(),myCountDownLatch);
+                    MyThreadPool.fixedThreadPoll.execute(myThread);
+
+                    js+=1;
                 }
+
+                while (myCountDownLatch.getFlag()>0){
+
+                }
+
 
 
 //                filedown(url+"download.asp?tb=xz&id=234799",headerList,1);
