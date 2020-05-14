@@ -52,7 +52,7 @@ public class Main {
         try {
             formEntity = new UrlEncodedFormEntity(parameters,"UTF-8");
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            logger.info(e.getMessage(),e);
         }
         httpPost.setEntity(formEntity);
 
@@ -61,27 +61,27 @@ public class Main {
         try {
             response = httpClient.execute(httpPost);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.info(e.getMessage(),e);
         }
-        System.out.println(response.getStatusLine().getStatusCode());
+        logger.info(response.getStatusLine().getStatusCode()+"");
         if(response.getStatusLine().getStatusCode()==200){
             Header[] httpHeaders = httpPost.getAllHeaders();
             for (Header httpHeader : httpHeaders) {
-                System.out.println(httpHeader.getName() + ":" + httpHeader.getValue());
+                logger.info(httpHeader.getName() + ":" + httpHeader.getValue());
             }
             HttpEntity entity = response.getEntity();
             String string = null;
             try {
                 string = EntityUtils.toString(entity, "utf-8");
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.info(e.getMessage(),e);
             }
-            System.out.println(string);
+            logger.info(string);
         }else if(response.getStatusLine().getStatusCode()==302){
             String newuri="";
             Header header = response.getFirstHeader("location"); // 跳转的目标地址是在 HTTP-HEAD 中的
             newuri = header.getValue(); // 这就是跳转后的地址，再向这个地址发出新申请，以便得到跳转后的信息是啥。
-            System.out.println(newuri);
+            logger.info(newuri);
 
 
             HttpPost httpPost1 = new HttpPost("http://www.henanjk.com/"+newuri);
@@ -89,9 +89,9 @@ public class Main {
             Header[] httpHeaders = response.getAllHeaders();
             headerList=new ArrayList<Header>();
             for (Header httpHeader : httpHeaders) {
-                System.out.println(httpHeader.getName() + ":" + httpHeader.getValue());
+                logger.info(httpHeader.getName() + ":" + httpHeader.getValue());
                 if(httpHeader.getName().equals("Set-Cookie")){
-                    System.out.println("Cookie="+httpHeader.getName() + ":" + httpHeader.getValue());
+                    logger.info("Cookie="+httpHeader.getName() + ":" + httpHeader.getValue());
                     httpPost1.addHeader("Cookie",httpHeader.getValue());
                     headerList.add(httpHeader);
                 }
@@ -103,9 +103,9 @@ public class Main {
                 try {
                     string = EntityUtils.toString(entity, "GBK");
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.info(e.getMessage(),e);
                 }
-                System.out.println(string);
+                logger.info(string);
                 //找到目标
                 downInteger=KMP.kmp(string,dest);
                 logger.info("count="+downInteger.size());
@@ -116,29 +116,40 @@ public class Main {
                     downMap.put(Dest.mainurl+downstr,integer);
                 }
                 logger.info("downMapcount="+downMap.size());
-                int js=0;
-                int f=2;
-                final CountDownLatch countDownLatch = new CountDownLatch(f);
-                MyCountDownLatch myCountDownLatch = new MyCountDownLatch(f);
-                for(Map.Entry<String,Integer> entry : downMap.entrySet()){
-                    if(js>=f){
-                        break;
+                int ix=-0;
+                if(ix==-1){
+                    filedown(url+"downloadx.asp?tb=xz&id=232244",headerList,ix);
+                }else {
+                    int js=0;
+                    int f=5;
+                    final CountDownLatch countDownLatch = new CountDownLatch(f);
+                    MyCountDownLatch myCountDownLatch = new MyCountDownLatch(f);
+                    for(Map.Entry<String,Integer> entry : downMap.entrySet()){
+                        if(js>=f){
+                            break;
+                        }
+                        logger.info(entry.getKey()+":"+entry.getValue());
+                        MyThread myThread=new MyThread(entry.getKey(),headerList,entry.getKey(),myCountDownLatch);
+                        MyThreadPool.fixedThreadPoll.execute(myThread);
+
+                        js+=1;
                     }
-                    logger.info(entry.getKey()+":"+entry.getValue());
-                    MyThread myThread=new MyThread(entry.getKey(),headerList,entry.getKey(),myCountDownLatch);
-                    MyThreadPool.fixedThreadPoll.execute(myThread);
 
-                    js+=1;
+                    while (myCountDownLatch.getFlag()>0){
+                        Thread.sleep(10000);
+                        logger.info("myCountDownLatchFlag="+myCountDownLatch.getFlag());
+                    }
+                    logger.info("全部加载完成");
+                    System.exit(0);
                 }
 
-                while (myCountDownLatch.getFlag()>0){
-
-                }
 
 
 
-//                filedown(url+"download.asp?tb=xz&id=234799",headerList,1);
+
             } catch (IOException e) {
+                logger.info(e.getMessage(),e);
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
@@ -148,7 +159,7 @@ public class Main {
             response.close();
             httpClient.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.info(e.getMessage(),e);
         }
 
     }
@@ -163,7 +174,7 @@ public class Main {
                 HttpGet httpGet = new HttpGet(URL_STR);
                 for (Header header : headerList) {
                     httpGet.addHeader("Cookie", header.getValue());
-                    System.out.println(header.getName() + ":" + header.getValue());
+                    logger.info(header.getName() + ":" + header.getValue());
                 }
 //                httpGet.addHeader("token", "sss");
 
@@ -171,17 +182,17 @@ public class Main {
                 HttpEntity entity = httpResponse.getEntity();
                 if(flag!=-1) {
                     String string = EntityUtils.toString(entity, "GBK");
-                    System.out.println(string);
+                    logger.info(string);
                     if (string.indexOf("location.href='downloadx.asp") > -1) {
                         string = string.substring(string.indexOf("'") + 1, string.lastIndexOf("'"));
-                        System.out.println(string);
+                        logger.info(string);
 
                         filedown(url + string, headerList, -1);
                     }
                 }
                 Header[] httpHeaders = httpGet.getAllHeaders();
                 for (Header httpHeader : httpHeaders) {
-                    System.out.println(httpHeader.getName() + ":" + httpHeader.getValue());
+                    logger.info(httpHeader.getName() + ":" + httpHeader.getValue());
                 }
 
                 if(flag==1){
@@ -192,11 +203,11 @@ public class Main {
 
                 long length = entity.getContentLength();
                 if (length <= 0) {
-                    System.out.println("下载文件不存在！");
+                    logger.info("下载文件不存在！");
                     return;
                 }
 
-                System.out.println("The response value of token:" + httpResponse.getFirstHeader("token"));
+                logger.info("The response value of token:" + httpResponse.getFirstHeader("token"));
 
                 File file = new File(mydir+"test.zip");
                 if(!file.exists()){
@@ -215,16 +226,16 @@ public class Main {
                 out.flush();
 
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.info(e.getMessage(),e);
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.info(e.getMessage(),e);
             }finally{
                 try {
                     if(in != null){
                         in.close();
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.info(e.getMessage(),e);
                 }
 
                 try {
@@ -232,7 +243,7 @@ public class Main {
                         out.close();
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.info(e.getMessage(),e);
                 }
             }
 

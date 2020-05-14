@@ -40,22 +40,25 @@ public class PageDownList {
             httpResponse = httpClient.execute(httpGet);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.info(e.getMessage(),e);
         }
         HttpEntity entity = httpResponse.getEntity();
+        if(entity==null){
+            return getResult(url);
+        }
         return entity;
     }
 
-    public void getResultType(ResultType resultType,HttpEntity entity,String filename,int page){
+    public void getResultType(ResultType resultType,HttpEntity entity,String filename,int page,String aUrl){
         this.page=page;
         if (resultType==ResultType.RESULT_TYPE_4){
             Map<String,String> map=getDownList(getResultString(entity),Dest.listPageDest);
 
-            System.out.println("map.count="+map.size());
+            logger.info("map.count="+map.size());
 
             for(Map.Entry<String,String> entry:map.entrySet()){
                 HttpEntity httpEntity=this.getResult(entry.getKey());
-                getResultType(ResultType.RESULT_TYPE_2,httpEntity,entry.getValue(),page);
+                getResultType(ResultType.RESULT_TYPE_2,httpEntity,entry.getValue(),page,entry.getKey());
             }
         }else if(resultType==ResultType.RESULT_TYPE_2){
             String string=getResultString(entity);
@@ -63,10 +66,10 @@ public class PageDownList {
                 string = Dest.mainurl+ string.substring(string.indexOf("'") + 1, string.lastIndexOf("'"));
                 //得到地址
                 HttpEntity httpEntity=getResult(string);
-                getResultType(ResultType.RESULT_TYPE_3,httpEntity,filename,page);
+                getResultType(ResultType.RESULT_TYPE_3,httpEntity,filename,page,string);
             }
         }else if(resultType==ResultType.RESULT_TYPE_3){
-            getDownFile(entity,filename);
+            getDownFile(entity,filename,aUrl);
 
 
         }
@@ -75,7 +78,7 @@ public class PageDownList {
     private void addHttpHeader(HttpRequestBase httpMethod,List<Header> headerList){
         for (Header header : headerList) {
             httpMethod.addHeader("Cookie", header.getValue());
-//            System.out.println(header.getName() + ":" + header.getValue());
+//            logger.info(header.getName() + ":" + header.getValue());
         }
     }
 
@@ -85,7 +88,7 @@ public class PageDownList {
         try {
             string = EntityUtils.toString(entity, "GBK");
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.info(e.getMessage(),e);
         }
         return string;
     }
@@ -96,14 +99,21 @@ public class PageDownList {
         List<Integer> integerList=KMP.kmp(source,dest);
         if(page==1){
             List<Integer> integerList1=KMP.kmp(source,Dest.pageDest);
-            String page1=source.substring(integerList1.get(0)+Dest.pageDest.length());
-            String page2=page1.substring(page1.indexOf("/")+1,page1.indexOf("页"));
-            sumPage=Integer.parseInt(page2);
-            logger.info("sumPage="+sumPage);
-            this.mPage.setSumPage(sumPage);
+            if(integerList1.size()>0){
+                String page1=source.substring(integerList1.get(0)+Dest.pageDest.length());
+                String page2=page1.substring(page1.indexOf("/")+1,page1.indexOf("页"));
+                sumPage=Integer.parseInt(page2);
+                logger.info("sumPage="+sumPage);
+                this.mPage.setSumPage(sumPage);
+            }else {
+                sumPage=1;
+                logger.info("sumPage="+sumPage);
+                this.mPage.setSumPage(sumPage);
+            }
+
         }
 
-        System.out.println("integerList.size="+integerList.size());
+        logger.info("integerList.size="+integerList.size());
         for (Integer integer : integerList) {
             String s2=source.substring(integer);
             String downstr=s2.substring(0,s2.indexOf("\""));
@@ -113,24 +123,39 @@ public class PageDownList {
             title=title.substring(0,title.indexOf("\""));
 
             stringIntegerMap.put(Dest.mainurl+downstr,title+Thread.currentThread().getId()+downstr.substring(downstr.lastIndexOf("=")+1)+".zip");
-//            System.out.println(Dest.mainurl+downstr+":"+title);
+//            logger.info(Dest.mainurl+downstr+":"+title);
         }
         return stringIntegerMap;
     }
 
     //类型是文件
-    public void getDownFile(HttpEntity httpEntity,String fileName){
+    public void getDownFile(HttpEntity httpEntity,String fileName,String aUrl){
         OutputStream out = null;
         InputStream in = null;
         try {
+
             in = httpEntity.getContent();
+
             long length = httpEntity.getContentLength();
             if (length <= 0) {
-                System.out.println("下载文件不存在！"+fileName);
+                logger.info("下载文件不存在！"+fileName+":"+aUrl);
+                byte[] bytes=EntityUtils.toByteArray(httpEntity);
+                String rehtml=new String(bytes,"GBK");
+//                logger.info("返回html="+rehtml);
+                if(aUrl.indexOf("tc=")>-1){
+                    String newUrl1=aUrl.substring(0,aUrl.indexOf("tc="));
+                    String newUrl2=aUrl.substring(aUrl.indexOf("tc="));
+                    if(newUrl2.indexOf("&")>-1){
+                        newUrl1=newUrl1+newUrl2.substring(newUrl2.indexOf("&")+1);
+                    }
+                    logger.info("新的url="+newUrl1);
+                    getDownFile(getResult(newUrl1),fileName,newUrl1);
+                }else {
+                    filedown(aUrl,fileName,0);
+                }
                 return;
             }
 
-            String tid=Thread.currentThread().getName()+System.currentTimeMillis();
             String path=Dest.dir+"thread"+Thread.currentThread().getId()+"\\"+page+"\\"+fileName;
             File file = new File(path);
             File fileParent = file.getParentFile();
@@ -151,15 +176,16 @@ public class PageDownList {
             }
 
             out.flush();
+            logger.info("下载文件成功！"+fileName+":"+aUrl);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.info(e.getMessage(),e);
         } finally {
             try {
                 if(in != null){
                     in.close();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.info(e.getMessage(),e);
             }
 
             try {
@@ -167,9 +193,83 @@ public class PageDownList {
                     out.close();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.info(e.getMessage(),e);
             }
         }
+    }
+
+
+    public  void filedown(String URL_STR,String fileName,int flag){
+        flag+=1;
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        OutputStream out = null;
+        InputStream in = null;
+
+        try {
+            HttpGet httpGet = new HttpGet(URL_STR);
+            for (Header header : headerList) {
+                httpGet.addHeader("Cookie", header.getValue());
+            }
+            HttpResponse httpResponse = httpClient.execute(httpGet);
+            HttpEntity entity = httpResponse.getEntity();
+            String path=Dest.dir+"thread"+Thread.currentThread().getId()+"\\"+page+"\\"+fileName;
+            in = entity.getContent();
+
+            long length = entity.getContentLength();
+            if (length <= 0) {
+                String reslut=EntityUtils.toString(entity,"GBK");
+                if(flag<=5){
+                    logger.info("下载文件不存在！filedown 第"+flag+"次重试失败"+fileName+":"+URL_STR+"  \n============================================"+reslut);
+                    filedown( URL_STR, fileName, flag);
+                    return;
+                }else {
+                    logger.info("下载文件不存在！filedown 第"+flag+"次重试失败,不在重试"+fileName+":"+URL_STR+"  \n============================================"+reslut);
+                    Dest.FAILPATH.put(URL_STR,path);
+                    return;
+                }
+
+            }
+
+            logger.info("The response value of token:" + httpResponse.getFirstHeader("token"));
+
+            File file = new File(path);
+            if(!file.exists()){
+                file.createNewFile();
+            }
+
+            out = new FileOutputStream(file);
+            byte[] buffer = new byte[4096];
+            int readLength = 0;
+            while ((readLength=in.read(buffer)) > 0) {
+                byte[] bytes = new byte[readLength];
+                System.arraycopy(buffer, 0, bytes, 0, readLength);
+                out.write(bytes);
+            }
+
+            out.flush();
+            logger.info("下载文件成功！filedown第"+flag+"次成功"+fileName+":"+URL_STR);
+        } catch (IOException e) {
+            logger.info(e.getMessage(),e);
+        } catch (Exception e) {
+            logger.info(e.getMessage(),e);
+        }finally{
+            try {
+                if(in != null){
+                    in.close();
+                }
+            } catch (IOException e) {
+                logger.info(e.getMessage(),e);
+            }
+
+            try {
+                if(out != null){
+                    out.close();
+                }
+            } catch (IOException e) {
+                logger.info(e.getMessage(),e);
+            }
+        }
+
     }
 
 }

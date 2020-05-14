@@ -1,5 +1,8 @@
 package main;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 public interface Dest {
     public static String listPageDest="download.asp?tb=xz&id=";
 
@@ -9,9 +12,12 @@ public interface Dest {
 
     public static String downPageDest1="location.href='downloadx.asp";
 
-    public static String dir="F:\\mydir\\";
+    public static String dir="D:\\mydir\\";
 
     public static String pageDest="<form name=fyform  method=post ><tr><td width=60% align=right>共";
 
-    public static int range=2;
+    //页数
+    public static int range=5;
+
+    public static Map<String,String> FAILPATH=new ConcurrentHashMap<String, String>();
 }

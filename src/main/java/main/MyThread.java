@@ -23,12 +23,12 @@ public class MyThread implements Runnable {
     }
 
     public void run() {
-        pageDownList.getResultType(ResultType.RESULT_TYPE_4,pageDownList.getResult(url),"",page.gettPage());
+        pageDownList.getResultType(ResultType.RESULT_TYPE_4,pageDownList.getResult(url),"",page.gettPage(),url);
         logger.info(url+""+Thread.currentThread().getId()+"/"+page.gettPage()+"页下载完成");
         page.settPage((page.gettPage()+1));
-        for (;page.gettPage()<=page.getSumPage() && page.gettPage()<Dest.range;){
-            String newUrl=url+"&page="+page;
-            pageDownList.getResultType(ResultType.RESULT_TYPE_4,pageDownList.getResult(newUrl),"",page.gettPage());
+        for (;page.gettPage()<=page.getSumPage() && page.gettPage()<=Dest.range;){
+            String newUrl=url+"&page="+page.gettPage();
+            pageDownList.getResultType(ResultType.RESULT_TYPE_4,pageDownList.getResult(newUrl),"",page.gettPage(),newUrl);
             logger.info(newUrl+"/"+Thread.currentThread().getId()+"/"+page.gettPage()+"页下载完成");
             page.settPage((page.gettPage()+1));
         }

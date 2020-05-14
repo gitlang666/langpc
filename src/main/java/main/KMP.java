@@ -1,9 +1,13 @@
 package main;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class KMP {
+    static Logger logger= LoggerFactory.getLogger(KMP.class);
     public static void main(String[] args) {
 
         String source = "abccdfabvsfnabc";
@@ -11,15 +15,15 @@ public class KMP {
 
         List<Integer> list=kmp(source,dest);
         for (Integer integer : list) {
-            System.out.println(integer);
+            logger.info(integer+"");
         }
 
         String s1="qwreqwer\"asdfa";
         String s2=s1.substring(s1.indexOf("re")+2,s1.indexOf("\""));
-        System.out.println(s2);
-        System.out.println(s1.substring(s1.lastIndexOf("d")+1));
+        logger.info(s2);
+        logger.info(s1.substring(s1.lastIndexOf("d")+1));
         KMP kmp=new KMP();
-        System.out.println(kmp.getPath());
+        logger.info(kmp.getPath());
     }
 
     /**
