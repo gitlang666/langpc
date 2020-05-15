@@ -8,6 +8,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MyThreadPool {
-    public static ExecutorService fixedThreadPoll= Executors.newFixedThreadPool(20);
+    public static ExecutorService fixedThreadPoll= Executors.newFixedThreadPool(Dest.f);
 
 }

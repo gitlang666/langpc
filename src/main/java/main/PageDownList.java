@@ -24,7 +24,7 @@ public class PageDownList {
     private String listUrl;
     private Page mPage;
     //1.打开浏览器
-    private CloseableHttpClient httpClient = HttpClients.createDefault();
+    private CloseableHttpClient httpClient = Dest.HTTP_CLIENT;
     List<Header> headerList=null;
     public  PageDownList(List<Header> headerList,String listUrl,Page mPage){
         this.headerList=headerList;
@@ -33,6 +33,7 @@ public class PageDownList {
     }
     public HttpEntity getResult(String url){
         HttpGet httpGet = new HttpGet(url);
+        httpGet.setConfig(Dest.REQUEST_CONFIG);
         addHttpHeader(httpGet,headerList);
 //                httpGet.addHeader("token", "sss");
         HttpResponse httpResponse = null;
@@ -122,7 +123,7 @@ public class PageDownList {
 
             title=title.substring(0,title.indexOf("\""));
 
-            stringIntegerMap.put(Dest.mainurl+downstr,title+Thread.currentThread().getId()+downstr.substring(downstr.lastIndexOf("=")+1)+".zip");
+            stringIntegerMap.put(Dest.mainurl+downstr,title+Thread.currentThread().getId()+"==id=="+downstr.substring(downstr.lastIndexOf("=")+1)+".zip");
 //            logger.info(Dest.mainurl+downstr+":"+title);
         }
         return stringIntegerMap;
@@ -201,12 +202,13 @@ public class PageDownList {
 
     public  void filedown(String URL_STR,String fileName,int flag){
         flag+=1;
-        CloseableHttpClient httpClient = HttpClients.createDefault();
+        CloseableHttpClient httpClient = Dest.HTTP_CLIENT;
         OutputStream out = null;
         InputStream in = null;
 
         try {
             HttpGet httpGet = new HttpGet(URL_STR);
+            httpGet.setConfig(Dest.REQUEST_CONFIG);
             for (Header header : headerList) {
                 httpGet.addHeader("Cookie", header.getValue());
             }
@@ -224,6 +226,7 @@ public class PageDownList {
                     return;
                 }else {
                     logger.info("下载文件不存在！filedown 第"+flag+"次重试失败,不在重试"+fileName+":"+URL_STR+"  \n============================================"+reslut);
+                    //下载地址和保存位置
                     Dest.FAILPATH.put(URL_STR,path);
                     return;
                 }

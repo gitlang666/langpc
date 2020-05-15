@@ -16,10 +16,10 @@ public class MyThread implements Runnable {
     public MyCountDownLatch myCountDownLatch;
 
     private Page page=new Page();
-    public MyThread(String url,  List<Header> headerList,String key, MyCountDownLatch myCountDownLatch) {
+    public MyThread(String url,  List<Header> headerList,String key, MyCountDownLatch countDownLatch) {
         this.url = url;
         this.pageDownList = new PageDownList(headerList,key,page);
-        this.myCountDownLatch = myCountDownLatch;
+        this.myCountDownLatch = countDownLatch;
     }
 
     public void run() {
@@ -34,5 +34,6 @@ public class MyThread implements Runnable {
         }
         logger.info("完成："+Thread.currentThread().getId());
         this.myCountDownLatch.downLatch();
+//        this.countDownLatch.countDown();
     }
 }

@@ -33,42 +33,15 @@ public class Main {
     static List<String> downList=new ArrayList<String>();
     static Map<String,Integer> downMap= new HashMap<String, Integer>();
     static List<Header> headerList;
+    static CloseableHttpClient httpClient;
     public static void main(String[] args)  {
-
-
         //1.打开浏览器
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        //2.声明get请求
-        HttpPost httpPost = new HttpPost("http://www.henanjk.com/yanzheng.asp");
-        //3.开源中国为了安全，防止恶意攻击，在post请求中都限制了浏览器才能访问
-        httpPost.addHeader("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36");
-        httpPost.setHeader("Content-type", "application/x-www-form-urlencoded");//默认是:application/x-www-form-urlencoded
-        //4.判断状态码
-        List<NameValuePair> parameters = new ArrayList<NameValuePair>(0);
-        parameters.add(new BasicNameValuePair("username", "sx5275"));
-        parameters.add(new BasicNameValuePair("password", "626270"));
-        parameters.add(new BasicNameValuePair("ucode", "250727058"));
-        UrlEncodedFormEntity formEntity = null;
-        try {
-            formEntity = new UrlEncodedFormEntity(parameters,"UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            logger.info(e.getMessage(),e);
-        }
-        httpPost.setEntity(formEntity);
 
-        //5.发送请求
+        //2.得到响应
         CloseableHttpResponse response = null;
-        try {
-            response = httpClient.execute(httpPost);
-        } catch (IOException e) {
-            logger.info(e.getMessage(),e);
-        }
+        response=login();
         logger.info(response.getStatusLine().getStatusCode()+"");
         if(response.getStatusLine().getStatusCode()==200){
-            Header[] httpHeaders = httpPost.getAllHeaders();
-            for (Header httpHeader : httpHeaders) {
-                logger.info(httpHeader.getName() + ":" + httpHeader.getValue());
-            }
             HttpEntity entity = response.getEntity();
             String string = null;
             try {
@@ -82,20 +55,9 @@ public class Main {
             Header header = response.getFirstHeader("location"); // 跳转的目标地址是在 HTTP-HEAD 中的
             newuri = header.getValue(); // 这就是跳转后的地址，再向这个地址发出新申请，以便得到跳转后的信息是啥。
             logger.info(newuri);
-
-
             HttpPost httpPost1 = new HttpPost("http://www.henanjk.com/"+newuri);
-
-            Header[] httpHeaders = response.getAllHeaders();
-            headerList=new ArrayList<Header>();
-            for (Header httpHeader : httpHeaders) {
-                logger.info(httpHeader.getName() + ":" + httpHeader.getValue());
-                if(httpHeader.getName().equals("Set-Cookie")){
-                    logger.info("Cookie="+httpHeader.getName() + ":" + httpHeader.getValue());
-                    httpPost1.addHeader("Cookie",httpHeader.getValue());
-                    headerList.add(httpHeader);
-                }
-            }
+            httpPost1.setConfig(Dest.REQUEST_CONFIG);
+            headerList=getHeaderList(response);
             try {
                 response=httpClient.execute(httpPost1);
                 HttpEntity entity = response.getEntity();
@@ -121,9 +83,9 @@ public class Main {
                     filedown(url+"downloadx.asp?tb=xz&id=232244",headerList,ix);
                 }else {
                     int js=0;
-                    int f=5;
+                    int f=Dest.f;
                     final CountDownLatch countDownLatch = new CountDownLatch(f);
-                    MyCountDownLatch myCountDownLatch = new MyCountDownLatch(f);
+                    final MyCountDownLatch myCountDownLatch=new MyCountDownLatch(f);
                     for(Map.Entry<String,Integer> entry : downMap.entrySet()){
                         if(js>=f){
                             break;
@@ -134,16 +96,18 @@ public class Main {
 
                         js+=1;
                     }
-
+//                    countDownLatch.wait();
                     while (myCountDownLatch.getFlag()>0){
-                        Thread.sleep(10000);
-                        logger.info("myCountDownLatchFlag="+myCountDownLatch.getFlag());
+                        Thread.sleep(30000);
+                        logger.info("myCountDownLatch.flag="+myCountDownLatch.getFlag());
                     }
-                    logger.info("全部加载完成");
+                    logger.info("第一次全部加载完成");
+                    logger.info("失败列表总数："+Dest.FAILPATH.size());
+                    for(Map.Entry<String,String> entry: Dest.FAILPATH.entrySet()){
+                        logger.warn("失败列表="+entry.getKey()+":"+entry.getValue());
+                    }
                     System.exit(0);
                 }
-
-
 
 
 
@@ -166,7 +130,7 @@ public class Main {
 
     public static void filedown(String URL_STR,List<Header> headerList,int flag){
 
-        CloseableHttpClient httpClient = HttpClients.createDefault();
+        CloseableHttpClient httpClient = Dest.HTTP_CLIENT;
             OutputStream out = null;
             InputStream in = null;
 
@@ -247,5 +211,52 @@ public class Main {
                 }
             }
 
+    }
+
+    public static CloseableHttpResponse login(){
+        //1.打开浏览器
+        httpClient = HttpClients.createDefault();
+        //2.声明get请求
+        HttpPost httpPost = new HttpPost("http://www.henanjk.com/yanzheng.asp");
+        //3.开源中国为了安全，防止恶意攻击，在post请求中都限制了浏览器才能访问
+        httpPost.addHeader("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36");
+        httpPost.setHeader("Content-type", "application/x-www-form-urlencoded");//默认是:application/x-www-form-urlencoded
+        //4.判断状态码
+        List<NameValuePair> parameters = new ArrayList<NameValuePair>(0);
+        parameters.add(new BasicNameValuePair("username", "sx5275"));
+        parameters.add(new BasicNameValuePair("password", "626270"));
+        parameters.add(new BasicNameValuePair("ucode", "250727058"));
+        UrlEncodedFormEntity formEntity = null;
+        try {
+            formEntity = new UrlEncodedFormEntity(parameters,"UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            logger.info(e.getMessage(),e);
+        }
+        httpPost.setEntity(formEntity);
+        httpPost.setConfig(Dest.REQUEST_CONFIG);
+        //5.发送请求
+        CloseableHttpResponse response = null;
+        try {
+            response = httpClient.execute(httpPost);
+        } catch (IOException e) {
+            logger.info(e.getMessage(),e);
+        }
+
+
+
+        return response;
+    }
+
+    public static List<Header> getHeaderList(CloseableHttpResponse response){
+        List<Header> list=new ArrayList<Header>();
+        Header[] httpHeaders = response.getAllHeaders();
+        for (Header httpHeader : httpHeaders) {
+            logger.info(httpHeader.getName() + ":" + httpHeader.getValue());
+            if (httpHeader.getName().equals("Set-Cookie")) {
+                logger.info("Cookie=" + httpHeader.getName() + ":" + httpHeader.getValue());
+                list.add(httpHeader);
+            }
+        }
+        return list;
     }
 }
