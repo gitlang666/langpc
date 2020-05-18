@@ -78,9 +78,11 @@ public class Main {
                     downMap.put(Dest.mainurl+downstr,integer);
                 }
                 logger.info("downMapcount="+downMap.size());
-                int ix=-0;
+                int ix=-1;
                 if(ix==-1){
-                    filedown(url+"downloadx.asp?tb=xz&id=232244",headerList,ix);
+//                    filedown(url+"downloadx.asp?tb=xz&id=232244",headerList,ix);
+                    AllFile allFile=new AllFile();
+                    allFile.getAllFile(downMap,headerList);
                 }else {
                     int js=0;
                     int f=Dest.f;

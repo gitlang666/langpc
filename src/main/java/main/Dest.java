@@ -27,6 +27,8 @@ public interface Dest {
 
     public static Map<String,String> FAILPATH=new ConcurrentHashMap<String, String>();
 
+    public static Map<Integer,String> AllFILEMAP=new ConcurrentHashMap<Integer, String>();
+
     public static RequestConfig REQUEST_CONFIG=RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(120000).build();
 
     public static CloseableHttpClient HTTP_CLIENT= HttpClients.custom().setDefaultRequestConfig(REQUEST_CONFIG).build();

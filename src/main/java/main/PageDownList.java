@@ -20,7 +20,7 @@ import java.util.Map;
 public class PageDownList {
     Logger logger= LoggerFactory.getLogger(PageDownList.class);
     private int sumPage;
-    private int page=1;
+    public int page=1;
     private String listUrl;
     private Page mPage;
     //1.打开浏览器
@@ -31,6 +31,7 @@ public class PageDownList {
         this.listUrl=listUrl;
         this.mPage=mPage;
     }
+    //得到响应对象
     public HttpEntity getResult(String url){
         HttpGet httpGet = new HttpGet(url);
         httpGet.setConfig(Dest.REQUEST_CONFIG);
@@ -44,9 +45,10 @@ public class PageDownList {
             logger.info(e.getMessage(),e);
         }
         HttpEntity entity = httpResponse.getEntity();
-        if(entity==null){
-            return getResult(url);
-        }
+
+//        if(entity==null){
+//            return getResult(url);
+//        }
         return entity;
     }
 
@@ -76,6 +78,7 @@ public class PageDownList {
         }
     }
 
+    //添加Cookie
     private void addHttpHeader(HttpRequestBase httpMethod,List<Header> headerList){
         for (Header header : headerList) {
             httpMethod.addHeader("Cookie", header.getValue());
@@ -87,7 +90,9 @@ public class PageDownList {
     public String getResultString(HttpEntity entity){
         String string=null;
         try {
-            string = EntityUtils.toString(entity, "GBK");
+            if(entity!=null) {
+                string = EntityUtils.toString(entity, "GBK");
+            }
         } catch (IOException e) {
             logger.info(e.getMessage(),e);
         }
@@ -128,6 +133,9 @@ public class PageDownList {
         }
         return stringIntegerMap;
     }
+
+
+
 
     //类型是文件
     public void getDownFile(HttpEntity httpEntity,String fileName,String aUrl){
