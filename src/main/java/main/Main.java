@@ -78,14 +78,14 @@ public class Main {
                     downMap.put(Dest.mainurl+downstr,integer);
                 }
                 logger.info("downMapcount="+downMap.size());
-                int ix=-1;
+                int ix=-0;
                 if(ix==-1){
 //                    filedown(url+"downloadx.asp?tb=xz&id=232244",headerList,ix);
                     AllFile allFile=new AllFile();
                     allFile.getAllFile(downMap,headerList);
                 }else {
                     int js=0;
-                    int f=Dest.f;
+                    int f=downMap.size();
                     final CountDownLatch countDownLatch = new CountDownLatch(f);
                     final MyCountDownLatch myCountDownLatch=new MyCountDownLatch(f);
                     for(Map.Entry<String,Integer> entry : downMap.entrySet()){
@@ -100,7 +100,7 @@ public class Main {
                     }
 //                    countDownLatch.wait();
                     while (myCountDownLatch.getFlag()>0){
-                        Thread.sleep(30000);
+                        Thread.sleep(300000);
                         logger.info("myCountDownLatch.flag="+myCountDownLatch.getFlag());
                     }
                     logger.info("第一次全部加载完成");

@@ -1,10 +1,13 @@
 package main;
 
+import jdk.internal.util.xml.impl.Input;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class KMP {
     static Logger logger= LoggerFactory.getLogger(KMP.class);
@@ -24,6 +27,8 @@ public class KMP {
         logger.info(s1.substring(s1.lastIndexOf("d")+1));
         KMP kmp=new KMP();
         logger.info(kmp.getPath());
+
+        kmp.testProperties();
     }
 
     /**
@@ -85,6 +90,25 @@ public class KMP {
             return path.substring(0,path.lastIndexOf("/"));
         }
         return path.replace("target/classes/", "");
+    }
+
+    public void testProperties(){
+        Properties properties=new Properties();
+        try {
+            InputStream is=new FileInputStream(new File(getPath()+"pz.properties"));
+            InputStreamReader isr=new InputStreamReader(is,"UTF-8");
+            properties.load(isr);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("properties.name="+properties.getProperty("name"));
+
     }
 
 }

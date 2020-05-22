@@ -14,11 +14,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AllFile {
     Logger logger= LoggerFactory.getLogger(AllFile.class);
     public void getAllFile(Map<String,Integer> map,List<Header> headerList){
-        int flag=20;
-        MyCountDownLatch myCountDownLatch=new MyCountDownLatch(map.size());
+        int flag=2;
+        int i=0;
+        MyCountDownLatch myCountDownLatch=new MyCountDownLatch(flag);
         for(Map.Entry<String,Integer> entry: map.entrySet()){
+            if(i>=flag){
+                break;
+            }
             AllFileWork allFileWork=new AllFileWork(headerList,entry.getKey(),myCountDownLatch);
             MyThreadPool.fixedThreadPoll.execute(allFileWork);
+            i++;
         }
         while (myCountDownLatch.getFlag()>0){
             try {
@@ -44,6 +49,7 @@ public class AllFile {
             this.myCountDownLatch=myCountDownLatch;
         }
 
+        @Override
         public void run() {
             HttpEntity entity=pageDownList.getResult(url);
             String resultS=pageDownList.getResultString(entity);
@@ -52,6 +58,11 @@ public class AllFile {
                 Dest.AllFILEMAP.put(Integer.parseInt(entry.getKey().substring(entry.getKey().lastIndexOf("=")+1)),entry.getKey());
             }
             for(page.settPage(page.gettPage()+1);page.gettPage()<=page.getSumPage();page.settPage(page.gettPage()+1)){
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 pageDownList.page=page.gettPage();
                 entity=pageDownList.getResult(url+"&page="+page.gettPage());
                 if(entity!=null){
