@@ -12,6 +12,7 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.text.ParagraphView;
 import java.io.*;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +24,7 @@ public class PageDownList {
     public int page=1;
     private String listUrl;
     private Page mPage;
+    private String dirName="thread"+Thread.currentThread().getId();
     //1.打开浏览器
     private CloseableHttpClient httpClient = Dest.HTTP_CLIENT;
     List<Header> headerList=null;
@@ -30,6 +32,12 @@ public class PageDownList {
         this.headerList=headerList;
         this.listUrl=listUrl;
         this.mPage=mPage;
+    }
+    public  PageDownList(List<Header> headerList,String listUrl,Page mPage,String dirName){
+        this.headerList=headerList;
+        this.listUrl=listUrl;
+        this.mPage=mPage;
+        this.dirName=dirName;
     }
     //得到响应对象
     public HttpEntity getResult(String url){
@@ -165,7 +173,7 @@ public class PageDownList {
                 return;
             }
 
-            String path=Dest.dir+"thread"+Thread.currentThread().getId()+"\\"+page+"\\"+fileName;
+            String path=Dest.dir+dirName+"\\"+page+"\\"+fileName;
             File file = new File(path);
             File fileParent = file.getParentFile();
             if(!fileParent.exists()){
@@ -222,7 +230,7 @@ public class PageDownList {
             }
             HttpResponse httpResponse = httpClient.execute(httpGet);
             HttpEntity entity = httpResponse.getEntity();
-            String path=Dest.dir+"thread"+Thread.currentThread().getId()+"\\"+page+"\\"+fileName;
+            String path=Dest.dir+dirName+"\\"+page+"\\"+fileName;
             in = entity.getContent();
 
             long length = entity.getContentLength();

@@ -20,8 +20,6 @@ public interface Dest {
 
     public static String pageDest="<form name=fyform  method=post ><tr><td width=60% align=right>共";
 
-    //页数
-    public static int range=10;
     //列表数,线程数
     public static int f=20;
 

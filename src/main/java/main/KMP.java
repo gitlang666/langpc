@@ -1,6 +1,5 @@
 package main;
 
-import jdk.internal.util.xml.impl.Input;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +28,8 @@ public class KMP {
         logger.info(kmp.getPath());
 
         kmp.testProperties();
+
+        logger.error("tset");
     }
 
     /**

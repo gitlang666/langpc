@@ -78,12 +78,13 @@ public class Main {
                     downMap.put(Dest.mainurl+downstr,integer);
                 }
                 logger.info("downMapcount="+downMap.size());
+                XZEntity xzEntity=XZEntity.getXzEntity();
                 int ix=-0;
                 if(ix==-1){
 //                    filedown(url+"downloadx.asp?tb=xz&id=232244",headerList,ix);
                     AllFile allFile=new AllFile();
                     allFile.getAllFile(downMap,headerList);
-                }else {
+                }else if(ix==-2){
                     int js=0;
                     int f=downMap.size();
                     final CountDownLatch countDownLatch = new CountDownLatch(f);
@@ -107,6 +108,26 @@ public class Main {
                     logger.info("失败列表总数："+Dest.FAILPATH.size());
                     for(Map.Entry<String,String> entry: Dest.FAILPATH.entrySet()){
                         logger.warn("失败列表="+entry.getKey()+":"+entry.getValue());
+                    }
+                    System.exit(0);
+                }else {
+                    int f=xzEntity.map.size();
+//                    final CountDownLatch countDownLatch = new CountDownLatch(f);
+                    final MyCountDownLatch myCountDownLatch=new MyCountDownLatch(f);
+                    for(Map.Entry<String, XZEntity.Dir> entry : xzEntity.map.entrySet()){
+                        logger.info(entry.getKey()+":"+entry.getValue().name);
+                        MyThread myThread=new MyThread(entry.getKey(),headerList,entry.getKey(),myCountDownLatch,entry.getValue().name);
+                        MyThreadPool.fixedThreadPoll.execute(myThread);
+                    }
+//                    countDownLatch.wait();
+                    while (myCountDownLatch.getFlag()>0){
+                        Thread.sleep(300000);
+                        logger.info("myCountDownLatch.flag="+myCountDownLatch.getFlag());
+                    }
+                    logger.info("第一次全部加载完成");
+                    logger.info("失败列表总数："+Dest.FAILPATH.size());
+                    for(Map.Entry<String,String> entry: Dest.FAILPATH.entrySet()){
+                        logger.error("失败列表="+entry.getKey()+"<==>"+entry.getValue());
                     }
                     System.exit(0);
                 }
