@@ -2,6 +2,7 @@ package main;
 
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClients;
 
 import java.util.Map;
@@ -29,5 +30,5 @@ public interface Dest {
 
     public static RequestConfig REQUEST_CONFIG=RequestConfig.custom().setConnectTimeout(5000).setSocketTimeout(120000).build();
 
-    public static CloseableHttpClient HTTP_CLIENT= HttpClients.custom().setDefaultRequestConfig(REQUEST_CONFIG).build();
+    public static CloseableHttpClient HTTP_CLIENT= HttpClients.custom().setDefaultRequestConfig(REQUEST_CONFIG).setRetryHandler(new DefaultHttpRequestRetryHandler(3,true)).build();
 }

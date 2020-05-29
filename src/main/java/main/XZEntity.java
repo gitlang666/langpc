@@ -124,8 +124,8 @@ public class XZEntity {
             }
         }else {
             for(int i=0;i<xzflwz.size();i++){
-                String path=Dest.mainurl+ Dest.memberPageDest+sid.get(i);
-                map.put(path,new Dir(sid.get(i),sidname.get(i)));
+                String path=Dest.mainurl+ Dest.memberPageDest+sid.get(xzflwz.get(i));
+                map.put(path,new Dir(sid.get(xzflwz.get(i)),sidname.get(xzflwz.get(i))));
             }
         }
 
