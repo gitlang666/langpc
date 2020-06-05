@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class Main {
     static Logger logger= LoggerFactory.getLogger(Main.class);
@@ -120,9 +121,11 @@ public class Main {
                         MyThreadPool.fixedThreadPoll.execute(myThread);
                     }
 //                    countDownLatch.wait();
+                    ThreadPoolExecutor threadPoolExecutor=(ThreadPoolExecutor)MyThreadPool.fixedThreadPoll;
                     while (myCountDownLatch.getFlag()>0){
                         Thread.sleep(300000);
                         logger.info("myCountDownLatch.flag="+myCountDownLatch.getFlag());
+                        logger.info("失败列表总数："+Dest.FAILPATH.size()+",工作线程活动数="+threadPoolExecutor.getActiveCount());
                     }
                     logger.info("第一次全部加载完成");
                     logger.info("失败列表总数："+Dest.FAILPATH.size());

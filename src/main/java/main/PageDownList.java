@@ -50,7 +50,8 @@ public class PageDownList {
             httpResponse = httpClient.execute(httpGet);
 
         } catch (IOException e) {
-            logger.info(e.getMessage(),e);
+            logger.info(e.getMessage()+"ThreadID="+Thread.currentThread().getId(),e);
+            return null;
         }
         HttpEntity entity = httpResponse.getEntity();
 
