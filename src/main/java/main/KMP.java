@@ -30,6 +30,18 @@ public class KMP {
         kmp.testProperties();
 
         logger.error("tset");
+        Thread t=new Thread(new Runnable() {
+            @Override
+            public void run() {
+                logger.info("thread:t");
+            }
+        });
+        t.start();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

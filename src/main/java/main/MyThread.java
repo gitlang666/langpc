@@ -41,9 +41,10 @@ public class MyThread implements Runnable {
             logger.info(newUrl+"/"+Thread.currentThread().getId()+"/"+page.gettPage()+"页下载完成");
             page.settPage((page.gettPage()+1));
         }
-        logger.info("完成："+dirName+",共"+(page.gettPage()-1)+"页"+"TheradID="+Thread.currentThread().getId());
+        logger.info("完成一个分类下载："+dirName+",共"+(page.gettPage()-1)+"页"+"TheradID="+Thread.currentThread().getId());
+        logger.info("一个线程完成任务：myCountDownLatch"+dirName);
         this.myCountDownLatch.downLatch();
-
+        logger.info("一个线程完成任务：myCountDownLatch-1"+dirName);
 //        this.countDownLatch.countDown();
     }
 }
